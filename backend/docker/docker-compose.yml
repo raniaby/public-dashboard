@@ -1,0 +1,80 @@
+networks:
+  public-dashboard:
+    name: public-dashboard
+    external: true
+    attachable: true
+
+volumes:
+  keycloak-postgres-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./keycloak-postgres
+
+x-common-config: &common-config
+  networks:
+    - public-dashboard
+
+x-postgres-common-config: &postgres-common-config
+  <<: *common-config
+  image: bitnami/postgresql:16.2.0-debian-12-r17
+  healthcheck:
+    test: ['CMD-SHELL', 'pg_isready -U postgres']
+    interval: 30s
+    timeout: 10s
+    retries: 3
+  restart: unless-stopped
+
+services:
+  keycloak-postgres:
+    <<: *postgres-common-config
+    container_name: keycloak-postgres
+    ports:
+      - '5434:5432'
+    environment:
+      POSTGRES_USER: ${KEYCLOAK_ADMIN}
+      POSTGRES_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      POSTGRES_DB: keycloak_db
+    volumes:
+      - keycloak-postgres-data:/bitnami/postgresql:rw
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.3
+    container_name: keycloak
+    ports:
+      - '${KEYCLOAK_PORT}:8080'
+    volumes:
+      - ./keycloak.conf:/opt/keycloak/conf/keycloak.conf:rw
+      - ./keycloak-theme:/opt/keycloak/themes/dashboard:rw
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-postgres:5432/keycloak_db
+      KC_DB_USERNAME: ${KEYCLOAK_ADMIN}
+      KC_DB_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_HOSTNAME_STRICT_HTTPS: ${KC_HOSTNAME_STRICT_HTTPS}
+      KC_HTTP_ENABLED: true
+      KC_HOSTNAME_DEBUG: false
+      KC_HOSTNAME_STRICT: false
+      PROXY_ADDRESS_FORWARDING: true
+    command: start-dev
+    restart: unless-stopped
+    depends_on:
+      keycloak-postgres:
+        condition: service_healthy
+    <<: *common-config
+
+  backend:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile
+    container_name: public-dashboard-backend
+    ports:
+      - '${API_PORT}:${API_PORT}'
+    depends_on:
+      keycloak:
+        condition: service_started
+    restart: unless-stopped
+    <<: *common-config
