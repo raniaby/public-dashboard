@@ -22,6 +22,7 @@ export const keycloakConfig = {
   authPublicKey: process.env.KEYCLOAK_AUTH_PUBLIC_KEY,
 };
 
+
 @Module({
   imports: [
     KeycloakConnectModule.register({

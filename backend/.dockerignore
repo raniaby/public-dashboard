@@ -1,11 +1,8 @@
-Dockerfile
+.git
 .dockerignore
 README.md
-*.log
 dist
 node_modules
+src
 docker
 scripts
-**/*.md
-.gitignore
-.git/

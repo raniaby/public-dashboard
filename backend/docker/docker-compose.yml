@@ -1,8 +1,10 @@
 networks:
-  public-dashboard:
-    name: public-dashboard
+  nginxproxymanager_default:
     external: true
-    attachable: true
+
+x-common-config: &common-config
+  networks:
+    - nginxproxymanager_default
 
 volumes:
   keycloak-postgres-data:
@@ -11,10 +13,6 @@ volumes:
       type: none
       o: bind
       device: ./keycloak-postgres
-
-x-common-config: &common-config
-  networks:
-    - public-dashboard
 
 x-postgres-common-config: &postgres-common-config
   <<: *common-config

@@ -12,8 +12,7 @@ fi
 # Read values from the environment file
 source "$ENV_FILE"
 
-NETWORK_NAME="public-dashboard"
-docker network create --attachable "$NETWORK_NAME"
+
 
 bash "$directory/scripts/generate.keycloak.conf.sh"
 

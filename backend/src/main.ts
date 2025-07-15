@@ -20,7 +20,7 @@ async function bootstrap() {
   app.use(expressUrlEncoded({ limit: '50mb', extended: true }));
 
   app.enableCors({
-    origin: [configService.getOrThrow('app.frontendUrl', { infer: true })],
+    origin: ["https://app.raniabys.me"],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
   });

@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import { environment } from "../../environment";
+import { getKeycloakLoginUrl } from "../../store/auth/authApi";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -12,10 +12,10 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   useEffect(() => {
     if (!token) {
-      const loginUrl = `${environment.keycloakAuthUrl}?client_id=${environment.keycloakClientId}&redirect_uri=${environment.keycloakRedirectUri}&response_type=code`;
-      navigate(`/keycloak-auth?returnUrl=${encodeURIComponent(loginUrl)}`, {
-        replace: true,
-      });
+      const loginUrl = getKeycloakLoginUrl();
+      // Redirect to Keycloak login page if no token is found
+      window.location.href = loginUrl;
+      return;
     }
   }, [token, navigate]);
 

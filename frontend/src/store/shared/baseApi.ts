@@ -23,13 +23,21 @@ const baseQuery = retry(
     if (result.error && result.error.status === 401) {
       if (refresh_token && isValidToken(refresh_token)) {
         try {
+     const formData = new URLSearchParams();
+      formData.append("grant_type", "refresh_token");
+      formData.append("client_id", environment.keycloakClientId);
+      formData.append("client_secret", environment.keycloakClientSecret);
+      formData.append("refresh_token", refresh_token);
           const refreshResult = await fetchBaseQuery({
-            baseUrl: environment.apiUrl,
+            baseUrl: environment.keycloakAuthServerUrl,
           })(
             {
-              url: "/auth/refresh",
+              url: '/token',
               method: "POST",
-              body: { refresh_token },
+              headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+              },
+              body: formData.toString(),
             },
             api,
             extraOptions
